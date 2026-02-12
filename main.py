@@ -1,114 +1,46 @@
 import cv2
 import mediapipe as mp
 import pyautogui
-import sounddevice as sd
-import numpy as np
-from faster_whisper import WhisperModel
-import threading
-import queue
-from collections import deque
 import time
+import numpy as np
+import sounddevice as sd
+import queue
+import threading
+from faster_whisper import WhisperModel
+from collections import deque
 
 pyautogui.FAILSAFE = False
 pyautogui.PAUSE = 0
 
+mp_hands = mp.solutions.hands
+mp_drawing = mp.solutions.drawing_utils
+
+hands = mp_hands.Hands(
+    static_image_mode=False,
+    max_num_hands=1,
+    min_detection_confidence=0.7,
+    min_tracking_confidence=0.5
+)
+
+screen_width, screen_height = pyautogui.size()
+cam_width, cam_height = 640, 480
+
+smoothing = 5
+prev_x, prev_y = 0, 0
+
+frame_reduction = 100
+
+gesture_active = False
+
+LeftRight_Click_Threshold = 0.05
+is_Left_Click = False
+is_Right_Click = False
+is_Enter_Click = False
+is_Fist = False
+is_Recording = False
+
 RATE = 16000
 CHUNK_SIZE = 1024
-screenW, screenH = pyautogui.size()
-
-class GestureController:
-    def __init__(self):
-        self.mp_hands = mp.solutions.hands
-        self.hands = self.mp_hands.Hands(
-            static_image_mode=False,
-            max_num_hands=1,
-            min_detection_confidence=0.7,
-            min_tracking_confidence=0.7
-        )
-
-        self.smoothX, self.smoothY = 0, 0
-        self.smoothing = 0.5
-
-        self.last_left_click = False
-        self.last_double_click = False
-        self.last_enter = False
-
-        self.gesture_history = deque(maxlen=3)
-
-    def distance(self, p1, p2):
-        return ((p1.x - p2.x)**2 + (p1.y - p2.y)**2)**0.5
-
-    def is_fist(self, lm):
-        thumb_tip = lm[4]
-        index_tip = lm[8]
-        middle_tip = lm[12]
-        ring_tip = lm[16]
-        pinky_tip = lm[20]
-        
-        palm_base = lm[0]
-        
-        threshold = 0.15
-        
-        return (self.distance(thumb_tip, palm_base) < threshold and
-                self.distance(index_tip, palm_base) < threshold and
-                self.distance(middle_tip, palm_base) < threshold and
-                self.distance(ring_tip, palm_base) < threshold and
-                self.distance(pinky_tip, palm_base) < threshold)
-
-    def is_index_thumb_touch(self, lm):
-        return self.distance(lm[4], lm[8]) < 0.05
-
-    def is_middle_thumb_touch(self, lm):
-        return self.distance(lm[4], lm[12]) < 0.05
-
-    def is_ring_thumb_touch(self, lm):
-        return self.distance(lm[4], lm[16]) < 0.05
-
-    def process_frame(self, frame):
-        rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        result = self.hands.process(rgb)
-
-        gesture_type = None
-
-        if result.multi_hand_landmarks:
-            lm = result.multi_hand_landmarks[0].landmark
-
-            middleBase = lm[9]
-            mouseX = screenW * middleBase.x
-            mouseY = screenH * middleBase.y
-            self.smoothX = self.smoothX * self.smoothing + mouseX * (1 - self.smoothing)
-            self.smoothY = self.smoothY * self.smoothing + mouseY * (1 - self.smoothing)
-            pyautogui.moveTo(int(self.smoothX), int(self.smoothY))
-
-            if self.is_fist(lm):
-                gesture_type = "fist"
-            elif self.is_index_thumb_touch(lm):
-                if not self.last_left_click:
-                    pyautogui.click()
-                    print("Left click")
-                    self.last_left_click = True
-                else:
-                    self.last_left_click = True
-            elif self.is_middle_thumb_touch(lm):
-                if not self.last_double_click:
-                    pyautogui.doubleClick()
-                    print("Double clikc")
-                    self.last_double_click = True
-                else:
-                    self.last_double_click = True
-            elif self.is_ring_thumb_touch(lm):
-                if not self.last_enter:
-                    pyautogui.press('enter')
-                    print("Enter")
-                    self.last_enter = True
-                else:
-                    self.last_enter = True
-            else:
-                self.last_left_click = False
-                self.last_double_click = False
-                self.last_enter = False
-
-        return gesture_type
 
 class VoiceRecorder:
     def __init__(self, model_size="small"):
@@ -209,49 +141,161 @@ class VoiceRecorder:
         self.stream.stop()
         self.stream.close()
 
-def main():
-    gesture = GestureController()
-    voice = VoiceRecorder(model_size="small")
+voice = VoiceRecorder(model_size="small")
 
-    cap = cv2.VideoCapture(0)
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-    cap.set(cv2.CAP_PROP_FPS, 30)
+def count_fingers(landmarks):
+    fingers = []
 
-    was_recording = False
+    fingers.append(1 if landmarks[4].x < landmarks[3].x else 0)
 
-    while True:
-        ret, frame = cap.read()
-        if not ret:
-            break
+    for tip, pip in [(8,6), (12,10), (16,14), (20,18)]:
+        fingers.append(1 if landmarks[tip].y < landmarks[pip].y else 0)
+    return fingers
 
-        frame = cv2.flip(frame, 1)
 
-        gesture_type = gesture.process_frame(frame)
+def calculate_distance(point1, point2):
+    return np.sqrt((point1.x - point2.x)**2 + (point1.y - point2.y)**2)
 
-        if gesture_type == "fist":
-            if not was_recording:
+
+def isLeftTouching(hand_landmark):
+    thumb_tip = hand_landmark.landmark[4]
+    index_tip = hand_landmark.landmark[8]
+    
+    LeftClickdistance = calculate_distance(thumb_tip, index_tip)
+    return LeftClickdistance < LeftRight_Click_Threshold
+
+def isRightTouching(hand_landmark):
+    thumb_tip = hand_landmark.landmark[4]
+    middle_tip = hand_landmark.landmark[12]
+    
+    RightClickdistance = calculate_distance(thumb_tip, middle_tip)
+    return RightClickdistance < LeftRight_Click_Threshold
+
+def isEnterTouching(hand_landmark):
+    thumb_tip = hand_landmark.landmark[4]
+    ring_tip = hand_landmark.landmark[16]
+
+    EnterDistance = calculate_distance(thumb_tip, ring_tip)
+    return EnterDistance < LeftRight_Click_Threshold
+
+def move_cursor(hand_landmarks, frame_width, frame_height):
+    global prev_x, prev_y
+
+    control_point = hand_landmarks.landmark[9]
+
+    x = int(control_point.x * frame_width)
+    y = int(control_point.y * frame_height)
+
+    screen_x = np.interp(x, [frame_reduction, frame_width - frame_reduction], 
+                         [0, screen_width])
+    screen_y = np.interp(y, [frame_reduction, frame_height - frame_reduction], 
+                         [0, screen_height])
+
+    smooth_x = prev_x + (screen_x - prev_x) / smoothing
+    smooth_y = prev_y + (screen_y - prev_y) / smoothing
+
+    #smooth_x = prev_x + (screen_x - prev_x)
+    #smooth_y = prev_y + (screen_y - prev_y)
+
+    pyautogui.moveTo(smooth_x, smooth_y)
+
+    prev_x, prev_y = smooth_x, smooth_y
+
+    return x, y
+
+cap = cv2.VideoCapture(0)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, cam_width)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, cam_height)
+
+while cap.isOpened():
+    success, frame = cap.read()
+    if not success:
+        break
+    
+    voice.update()
+
+    frame = cv2.flip(frame, 1)
+    frame_height, frame_width, _ = frame.shape
+    rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    results = hands.process(rgb_frame)
+
+    if results.multi_hand_landmarks:
+        hand_landmarks = results.multi_hand_landmarks[0]
+        #mp_drawing.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
+        
+        fingers = count_fingers(hand_landmarks.landmark)
+        finger_count = sum(fingers)
+        
+        gesture = None
+        if fingers == [0, 0, 0, 0, 0] and not is_Fist:
+            is_Fist = True
+            gesture = "FIST"
+        
+        if fingers != [0, 0, 0, 0, 0]:
+            is_Fist = False
+        
+        if gesture_active:
+            move_cursor(hand_landmarks, frame_width, frame_height)
+
+        if fingers == [0, 1, 1, 1, 0] and not is_Recording:
+            is_Recording = True
+            gesture = "Record"
+
+        if fingers != [0, 1, 1, 1, 0] and is_Recording:
+            voice.stop_recording()
+            is_Recording = False
+
+        is_leftClick = isLeftTouching(hand_landmarks)
+        is_rightClick = isRightTouching(hand_landmarks)
+        is_EnterClick = isEnterTouching(hand_landmarks)
+
+        if is_leftClick and not is_Left_Click:
+            is_Left_Click = True
+            gesture = "Left Click"
+        
+        if not is_leftClick:
+            is_Left_Click = False
+
+        if is_rightClick and not is_Right_Click:
+            is_Right_Click = True
+            gesture = "Right Click"
+        
+        if not is_rightClick:
+            is_Right_Click = False
+
+        if is_EnterClick and not is_Enter_Click:
+            is_Enter_Click = True
+            gesture = "Enter Click"
+
+        if not is_EnterClick:
+            is_Enter_Click = False
+
+        if gesture:
+            if gesture == "FIST":
+                gesture_active = not gesture_active
+                print(f"Gestures {'ACTIVATED' if gesture_active else 'DEACTIVATED'}")
+            
+            if gesture == "Record":
                 voice.start_recording()
-                was_recording = True
 
-            if voice.recording_start_time:
-                duration = time.time() - voice.recording_start_time
+            elif gesture == "Left Click" and gesture_active:
+                pyautogui.click()
+                print("Left click")
 
-        else:
-            if was_recording:
-                voice.stop_recording()
-                was_recording = False
+            elif gesture == "Right Click" and gesture_active:
+                pyautogui.rightClick()
+                print("Right click")
 
-        voice.update()
+            elif gesture == "Enter Click" and gesture_active:
+                pyautogui.hotkey("enter")
+                print("Enter")
+    
+    cv2.imshow('Gesture Control', frame)
+    
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
 
-        cv2.imshow("Gesture Control", frame)
-
-        if cv2.waitKey(1) & 0xFF == 27:
-            break
-
-    voice.cleanup()
-    cap.release()
-    cv2.destroyAllWindows()
-
-if __name__ == "__main__":
-    main()
+voice.cleanup()
+cap.release()
+cv2.destroyAllWindows()
+hands.close()
