@@ -17,7 +17,7 @@ mp_drawing = mp.solutions.drawing_utils
 
 hands = mp_hands.Hands(
     static_image_mode=False,
-    max_num_hands=1,
+    max_num_hands=2,
     min_detection_confidence=0.7,
     min_tracking_confidence=0.5
 )
@@ -38,6 +38,9 @@ is_Right_Click = False
 is_Enter_Click = False
 is_Fist = False
 is_Recording = False
+
+last_scroll_time = 0
+is_Dragging = False
 
 RATE = 16000
 CHUNK_SIZE = 1024
@@ -143,10 +146,13 @@ class VoiceRecorder:
 
 voice = VoiceRecorder(model_size="small")
 
-def count_fingers(landmarks):
+def count_fingers(landmarks, hand_label):
     fingers = []
 
-    fingers.append(1 if landmarks[4].x < landmarks[3].x else 0)
+    if hand_label == "Right":
+        fingers.append(1 if landmarks[4].x < landmarks[3].x else 0)
+    else:
+        fingers.append(1 if landmarks[4].x > landmarks[3].x else 0)  # left hand
 
     for tip, pip in [(8,6), (12,10), (16,14), (20,18)]:
         fingers.append(1 if landmarks[tip].y < landmarks[pip].y else 0)
@@ -203,9 +209,22 @@ def move_cursor(hand_landmarks, frame_width, frame_height):
 
     return x, y
 
+def get_hand_label(index, results):
+    handedness = results.multi_handedness[index].classification[0].label
+    return handedness
+
 cap = cv2.VideoCapture(0)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, cam_width)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, cam_height)
+
+def draw_hand_label(frame, hand_landmarks, label, frame_width, frame_height):
+    wrist = hand_landmarks.landmark[0]
+    cx = int(wrist.x * frame_width)
+    cy = int(wrist.y * frame_height)
+
+    color = (0, 255, 0) if label == "Right" else (255, 100, 0)
+    cv2.putText(frame, label, (cx - 30, cy + 30),
+                cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2, cv2.LINE_AA)
 
 while cap.isOpened():
     success, frame = cap.read()
@@ -220,76 +239,102 @@ while cap.isOpened():
     results = hands.process(rgb_frame)
 
     if results.multi_hand_landmarks:
-        hand_landmarks = results.multi_hand_landmarks[0]
-        #mp_drawing.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
+        for i, hand_landmarks in enumerate(results.multi_hand_landmarks):
+            hand_label = get_hand_label(i, results)
+            draw_hand_label(frame, hand_landmarks, hand_label, frame_width, frame_height)
         
-        fingers = count_fingers(hand_landmarks.landmark)
-        finger_count = sum(fingers)
+            fingers = count_fingers(hand_landmarks.landmark, hand_label)
+            finger_count = sum(fingers)
         
-        gesture = None
-        if fingers == [0, 0, 0, 0, 0] and not is_Fist:
-            is_Fist = True
-            gesture = "FIST"
-        
-        if fingers != [0, 0, 0, 0, 0]:
-            is_Fist = False
-        
-        if gesture_active:
-            move_cursor(hand_landmarks, frame_width, frame_height)
+            Right_gesture = None
+            Left_gesture = None
 
-        if fingers == [0, 1, 1, 1, 0] and not is_Recording:
-            is_Recording = True
-            gesture = "Record"
-
-        if fingers != [0, 1, 1, 1, 0] and is_Recording:
-            voice.stop_recording()
-            is_Recording = False
-
-        is_leftClick = isLeftTouching(hand_landmarks)
-        is_rightClick = isRightTouching(hand_landmarks)
-        is_EnterClick = isEnterTouching(hand_landmarks)
-
-        if is_leftClick and not is_Left_Click:
-            is_Left_Click = True
-            gesture = "Left Click"
-        
-        if not is_leftClick:
-            is_Left_Click = False
-
-        if is_rightClick and not is_Right_Click:
-            is_Right_Click = True
-            gesture = "Right Click"
-        
-        if not is_rightClick:
-            is_Right_Click = False
-
-        if is_EnterClick and not is_Enter_Click:
-            is_Enter_Click = True
-            gesture = "Enter Click"
-
-        if not is_EnterClick:
-            is_Enter_Click = False
-
-        if gesture:
-            if gesture == "FIST":
-                gesture_active = not gesture_active
-                print(f"Gestures {'ACTIVATED' if gesture_active else 'DEACTIVATED'}")
+            if hand_label == "Right":
+                if fingers == [0, 0, 0, 0, 0] and not is_Fist:
+                    is_Fist = True
+                    Right_gesture = "FIST"
             
-            if gesture == "Record":
-                voice.start_recording()
+                if fingers != [0, 0, 0, 0, 0]:
+                    is_Fist = False
+            
+                if gesture_active:
+                    move_cursor(hand_landmarks, frame_width, frame_height)
 
-            elif gesture == "Left Click" and gesture_active:
-                pyautogui.click()
-                print("Left click")
+                if fingers == [0, 1, 1, 1, 0] and not is_Recording:
+                    is_Recording = True
+                    Right_gesture = "Record"
 
-            elif gesture == "Right Click" and gesture_active:
-                pyautogui.rightClick()
-                print("Right click")
+                if fingers != [0, 1, 1, 1, 0] and is_Recording:
+                    voice.stop_recording()
+                    is_Recording = False
 
-            elif gesture == "Enter Click" and gesture_active:
-                pyautogui.hotkey("enter")
-                print("Enter")
-    
+                is_leftClick = isLeftTouching(hand_landmarks)
+                is_rightClick = isRightTouching(hand_landmarks)
+                is_EnterClick = isEnterTouching(hand_landmarks)
+
+                if is_leftClick and not is_Left_Click:
+                    is_Left_Click = True
+                    Right_gesture = "Left Click"
+            
+                if not is_leftClick:
+                    is_Left_Click = False
+
+                if is_rightClick and not is_Right_Click:
+                    is_Right_Click = True
+                    Right_gesture = "Right Click"
+            
+                if not is_rightClick:
+                    is_Right_Click = False
+
+                if is_EnterClick and not is_Enter_Click:
+                    is_Enter_Click = True
+                    Right_gesture = "Enter Click"
+
+                if not is_EnterClick:
+                    is_Enter_Click = False
+
+                if Right_gesture:
+                    if Right_gesture == "FIST":
+                        gesture_active = not gesture_active
+                        print(f"Gestures {'ACTIVATED' if gesture_active else 'DEACTIVATED'}")
+                
+                    if Right_gesture == "Record":
+                        voice.start_recording()
+
+                    elif Right_gesture == "Left Click" and gesture_active:
+                        pyautogui.click()
+                        print("Left click")
+
+                    elif Right_gesture == "Right Click" and gesture_active:
+                        pyautogui.rightClick()
+                        print("Right click")
+
+                    elif Right_gesture == "Enter Click" and gesture_active:
+                        pyautogui.hotkey("enter")
+                        print("Enter")
+
+            elif hand_label == "Left":
+
+                if fingers == [0, 1, 1, 0, 0] and gesture_active:
+                    if time.time() - last_scroll_time > 0.2:
+                        pyautogui.scroll(1)
+                        last_scroll_time = time.time()
+
+                if fingers == [0, 1, 0, 0, 0] and gesture_active:
+                    if time.time() - last_scroll_time > 0.2:
+                        pyautogui.scroll(-1)
+                        last_scroll_time = time.time()
+
+                is_drag = isLeftTouching(hand_landmarks)
+
+                if is_drag and not is_Dragging:
+                    is_Dragging = True
+                    pyautogui.mouseDown()
+               
+                if not is_drag and is_Dragging:
+                    is_Dragging = False
+                    pyautogui.mouseUp()
+
     cv2.imshow('Gesture Control', frame)
     
     if cv2.waitKey(1) & 0xFF == ord('q'):
