@@ -8,6 +8,7 @@ import queue
 import threading
 from faster_whisper import WhisperModel
 from collections import deque
+import tkinter as tk
 
 pyautogui.FAILSAFE = False
 pyautogui.PAUSE = 0
@@ -41,9 +42,25 @@ is_Recording = False
 
 last_scroll_time = 0
 is_Dragging = False
+is_altTab = False
+is_Backspace = False
 
 RATE = 16000
 CHUNK_SIZE = 1024
+
+overlay = tk.Tk()
+overlay.overrideredirect(True)
+overlay.attributes('-topmost', True)
+overlay.attributes('-transparentcolor', 'black')
+overlay.configure(bg='black')
+
+label_width, label_height = 300, 50
+overlay.geometry(f"{label_width}x{label_height}+{screen_width - label_width - 10}+10")
+
+gesture_label = tk.Label(overlay, text="Gesture: None", 
+                          fg='cyan', bg='black',
+                          font=('Arial', 14, 'bold'))
+gesture_label.pack()
 
 class VoiceRecorder:
     def __init__(self, model_size="small"):
@@ -67,7 +84,7 @@ class VoiceRecorder:
         )
         self.stream.start()
 
-    def _audio_callback(self, indata, frames, time, status):
+    def _audio_callback(self, indata, frames, time_info, status):
         if self.is_recording:
             self.audio_queue.put(indata.copy())
 
@@ -179,7 +196,14 @@ def isRightTouching(hand_landmark):
 
 def isEnterTouching(hand_landmark):
     thumb_tip = hand_landmark.landmark[4]
-    ring_tip = hand_landmark.landmark[16]
+    pinky_tip = hand_landmark.landmark[16]
+
+    BackDistance = calculate_distance(thumb_tip, pinky_tip)
+    return BackDistance < LeftRight_Click_Threshold
+
+def isBackspaceTouching(hand_landmark):
+    thumb_tip = hand_landmark.landmark[4]
+    ring_tip = hand_landmark.landmark[20]
 
     EnterDistance = calculate_distance(thumb_tip, ring_tip)
     return EnterDistance < LeftRight_Click_Threshold
@@ -261,7 +285,6 @@ while cap.isOpened():
                     move_cursor(hand_landmarks, frame_width, frame_height)
 
                 if fingers == [0, 1, 1, 1, 0] and not is_Recording:
-                    is_Recording = True
                     Right_gesture = "Record"
 
                 if fingers != [0, 1, 1, 1, 0] and is_Recording:
@@ -299,6 +322,7 @@ while cap.isOpened():
                         print(f"Gestures {'ACTIVATED' if gesture_active else 'DEACTIVATED'}")
                 
                     if Right_gesture == "Record":
+                        is_Recording = True
                         voice.start_recording()
 
                     elif Right_gesture == "Left Click" and gesture_active:
@@ -319,21 +343,58 @@ while cap.isOpened():
                     if time.time() - last_scroll_time > 0.2:
                         pyautogui.scroll(1)
                         last_scroll_time = time.time()
+                        print("Scroll up")
 
                 if fingers == [0, 1, 0, 0, 0] and gesture_active:
                     if time.time() - last_scroll_time > 0.2:
                         pyautogui.scroll(-1)
                         last_scroll_time = time.time()
+                        print("Scroll down")
 
                 is_drag = isLeftTouching(hand_landmarks)
 
-                if is_drag and not is_Dragging:
+                if  is_drag and not is_Dragging:
                     is_Dragging = True
                     pyautogui.mouseDown()
+                    print("Drag")
                
                 if not is_drag and is_Dragging:
                     is_Dragging = False
-                    pyautogui.mouseUp()
+                    pyautogui.mouseUp() 
+                
+                if fingers == [0, 0, 0, 0, 0] and gesture_active:
+                    if not is_altTab:
+                        is_altTab = True
+                        pyautogui.keyDown('alt')
+                        pyautogui.press('tab')
+                        last_tab_time = time.time()
+                        print("Alt tab cycle opened")
+                    else:
+                        if time.time() - last_tab_time > 0.9:
+                            pyautogui.press('tab')
+                            last_tab_time = time.time()
+                            print("Tab pressed")
+
+                if fingers != [0, 0, 0, 0, 0] and is_altTab:
+                    is_altTab = False
+                    pyautogui.keyUp('alt')
+                    print("Alt released")
+
+                is_back = isBackspaceTouching(hand_landmarks)
+
+                if is_back and gesture_active:
+                    if not is_Backspace:
+                        is_Backspace = True
+                        pyautogui.hotkey('backspace')
+                        print("Backspace pressed")
+
+                if not is_back:
+                    is_Backspace = False
+
+    if Right_gesture or Left_gesture:
+        last_gesture = Right_gesture or Left_gesture
+        gesture_label.config(text=f"Gesture: {last_gesture}")
+        overlay.update()
 
     cv2.imshow('Gesture Control', frame)
     
@@ -343,4 +404,5 @@ while cap.isOpened():
 voice.cleanup()
 cap.release()
 cv2.destroyAllWindows()
+overlay.destroy()
 hands.close()
