@@ -47,7 +47,7 @@ class VirtualKeyboard:
         '/': 'slash',
     }
 
-    FINGER_COLORS = ['#00d4ff', '#ff6ec7']
+    FINGER_COLORS = ['#00d4ff', '#ff4d4d']
 
     def __init__(self, screen_w, screen_h):
         self.screen_w = screen_w
