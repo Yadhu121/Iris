@@ -76,8 +76,7 @@ is_Recording = False
 # ----
 
 # Keyboard
-is_peace = {0: False, 1: False}
-was_peace = {0: False, 1: False}
+was_peace = False
 # ----
 
 HAND_COLORS = {
@@ -492,19 +491,16 @@ while cap.isOpened():
 
                 elif fingers == [0, 1, 0, 0, 0]:
                     if hand_label == "Right":
-                        vkb.update_hover(i, tip_screen_x, tip_screen_y)
+                        vkb.update_hover(tip_screen_x, tip_screen_y)
 
                 elif fingers == [0, 1, 1, 0, 0]:
                     if hand_label == "Left":
-                        right_idx = next((j for j in range(num_hands) 
-                                        if get_hand_label(j, results) == "Right"), None)
-                        if right_idx is not None:
-                            if not was_peace[i]:
-                                vkb.try_press(right_idx)
-                            was_peace[i] = True
+                        if not was_peace:
+                            vkb.try_press()
+                        was_peace = True
                 else:
                     if hand_label == "Left":
-                        was_peace[i] = False
+                        was_peace = False
 
             elif current_mode == Mode.VOICE and gesture_active:
 
