@@ -210,7 +210,7 @@ class VirtualKeyboard:
                 hovered_key = kid
                 break
 
-        old = self.hovered[hand_idx]
+        old = self.hovered.get(hand_idx)
         self.hovered[hand_idx] = hovered_key
 
         if old and old != hovered_key:
@@ -232,7 +232,7 @@ class VirtualKeyboard:
         self.fcanvas.update_idletasks()
 
     def try_press(self, hand_idx):
-        key = self.hovered[hand_idx]
+        key = self.hovered.get(hand_idx)
         if not key:
             return
 
