@@ -50,7 +50,6 @@ MODE_HOLD_SECONDS = 1.0
 
 translate_mode = None
 
-osk = None
 
 gesture_active = False
 is_Fist = False
@@ -320,12 +319,10 @@ while cap.isOpened():
                         current_mode = pending_mode
                         print(f"Mode switched to: {current_mode.value}")
                         if current_mode == Mode.KEYBOARD:
-                            if osk is None:
-                                osk = subprocess.Popen("osk.exe", shell=True)
+                            osk = subprocess.Popen("osk.exe", shell=True)
                         else:
-                            if osk is not None:
-                                osk.terminate()
-                                osk = None
+                            osk.terminate()
+                            
                         gesture_label.config(text=f"[{current_mode.value}] Mode Active")
                         overlay.update()
                     pending_mode = None
@@ -523,4 +520,3 @@ cap.release()
 cv2.destroyAllWindows()
 overlay.destroy()
 hands.close()
-osk.terminate()
