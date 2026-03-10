@@ -8,9 +8,9 @@ import queue
 import threading
 from faster_whisper import WhisperModel
 import tkinter as tk
-from keyboard import VirtualKeyboard
 from enum import Enum
 from deep_translator import GoogleTranslator
+import subprocess
 
 class TranslateEngine:
     def translate(self, text, mode):
@@ -50,6 +50,7 @@ MODE_HOLD_SECONDS = 1.0
 
 translate_mode = None
 
+
 gesture_active = False
 is_Fist = False
 
@@ -75,9 +76,6 @@ CLICK_THRESHOLD = 0.05
 is_Recording = False
 # ----
 
-# Keyboard
-was_peace = False
-# ----
 
 HAND_COLORS = {
     "Right": (0, 255, 120),
@@ -282,7 +280,6 @@ class VoiceRecorder:
 
 
 voice = VoiceRecorder(model_size="small")
-vkb = VirtualKeyboard(screen_width, screen_height)
 translator = TranslateEngine()
 
 
@@ -322,9 +319,10 @@ while cap.isOpened():
                         current_mode = pending_mode
                         print(f"Mode switched to: {current_mode.value}")
                         if current_mode == Mode.KEYBOARD:
-                            vkb.show()
+                            osk = subprocess.Popen("osk.exe", shell=True)
                         else:
-                            vkb.hide()
+                            osk.terminate()
+                            
                         gesture_label.config(text=f"[{current_mode.value}] Mode Active")
                         overlay.update()
                     pending_mode = None
@@ -471,36 +469,9 @@ while cap.isOpened():
                     if is_leftClick and not is_Left_Click:
                         is_Left_Click = True
                         pyautogui.click()
-                        print("KB Left click")
+                        print("Left click")
                     if not is_leftClick:
                         is_Left_Click = False
-
-                    # if is_rightClick and not is_Right_Click:
-                    #     is_Right_Click = True
-                    #     pyautogui.rightClick()
-                    #     print("KB Right click")
-                    # if not is_rightClick:
-                    #     is_Right_Click = False
-
-                    # if is_EnterClick and not is_Enter_Click:
-                    #     is_Enter_Click = True
-                    #     pyautogui.hotkey("enter")
-                    #     print("KB Enter")
-                    # if not is_EnterClick:
-                    #     is_Enter_Click = False
-
-                elif fingers == [0, 1, 0, 0, 0]:
-                    if hand_label == "Right":
-                        vkb.update_hover(tip_screen_x, tip_screen_y)
-
-                elif fingers == [0, 1, 1, 0, 0]:
-                    if hand_label == "Left":
-                        if not was_peace:
-                            vkb.try_press()
-                        was_peace = True
-                else:
-                    if hand_label == "Left":
-                        was_peace = False
 
             elif current_mode == Mode.VOICE and gesture_active:
 
@@ -545,7 +516,6 @@ while cap.isOpened():
         break
 
 voice.cleanup()
-vkb.destroy()
 cap.release()
 cv2.destroyAllWindows()
 overlay.destroy()
