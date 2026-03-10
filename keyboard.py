@@ -47,17 +47,16 @@ class VirtualKeyboard:
         '/': 'slash',
     }
 
-    FINGER_COLORS = ['#00d4ff', '#ff6ec7']
+    FINGER_COLOR = '#00d4ff'
 
     def __init__(self, screen_w, screen_h):
         self.screen_w = screen_w
         self.screen_h = screen_h
         self.visible = False
         self.key_rects = {}
-        self.hovered = {0: None, 1: None}
+        self.hovered = None
         self.pressed_cooldown = {}
         self.COOLDOWN = 0.6
-        self.flash_pending = {}
         self.kb_screen_x = 0
         self.kb_screen_y = 0
 
@@ -88,12 +87,7 @@ class VirtualKeyboard:
         )
         self.fcanvas.pack()
 
-        self.finger_dots = {}
-        for i in range(2):
-            dot = self.fcanvas.create_oval(0, 0, 0, 0, fill=self.FINGER_COLORS[i], outline='white', width=2)
-            label = self.fcanvas.create_text(0, 0, text='', fill=self.FINGER_COLORS[i],
-                                              font=('Consolas', 9, 'bold'))
-            self.finger_dots[i] = (dot, label)
+        self.right_dot = self.fcanvas.create_oval(0, 0, 0, 0, fill=self.FINGER_COLOR, outline='white', width=2)
 
     def _tag(self, key):
         return f'key_{key}'
@@ -143,7 +137,7 @@ class VirtualKeyboard:
                     text=key.replace('_R', ''),
                     fill='#e0e0e0',
                     font=('Consolas', 11, 'bold'),
-                    tags=(tag, 'label')
+
                 )
                 x += kw + self.PADDING
 
@@ -168,8 +162,7 @@ class VirtualKeyboard:
         self.win.withdraw()
         self.finger_overlay.withdraw()
         self.visible = False
-        self.hovered = {0: None, 1: None}
-        self.flash_pending.clear()
+        self.hovered = None
 
     def toggle(self):
         self.hide() if self.visible else self.show()
@@ -183,16 +176,8 @@ class VirtualKeyboard:
         return None
 
     def _key_color(self, key):
-        if key in self.flash_pending:
-            return '#00b894'
-        h0 = self.hovered.get(0)
-        h1 = self.hovered.get(1)
-        if key == h0 and key == h1:
-            return '#7b2d8b'
-        if key == h0:
+        if key == self.hovered:
             return '#0f4c75'
-        if key == h1:
-            return '#6a0572'
         return '#16213e'
 
     def _refresh_key(self, key):
@@ -200,7 +185,7 @@ class VirtualKeyboard:
         if item:
             self.canvas.itemconfig(item, fill=self._key_color(key))
 
-    def update_hover(self, hand_idx, sx, sy):
+    def update_hover(self, sx, sy):
         lx = sx - self.kb_screen_x
         ly = sy - self.kb_screen_y
         hovered_key = None
@@ -210,8 +195,8 @@ class VirtualKeyboard:
                 hovered_key = kid
                 break
 
-        old = self.hovered.get(hand_idx)
-        self.hovered[hand_idx] = hovered_key
+        old = self.hovered
+        self.hovered = hovered_key
 
         if old and old != hovered_key:
             self._refresh_key(old)
@@ -221,18 +206,12 @@ class VirtualKeyboard:
 
         self.canvas.update_idletasks()
 
-        dot, lbl = self.finger_dots[hand_idx]
         r = 14
-        self.fcanvas.coords(dot, sx - r, sy - r, sx + r, sy + r)
-        self.fcanvas.coords(lbl, sx, sy - r - 10)
-
-        hand_name = 'R' if hand_idx == 0 else 'L'
-        hover_text = f'{hand_name}: {hovered_key.replace("_R","") if hovered_key else ""}'
-        self.fcanvas.itemconfig(lbl, text=hover_text)
+        self.fcanvas.coords(self.right_dot, sx - r, sy - r, sx + r, sy + r)
         self.fcanvas.update_idletasks()
 
-    def try_press(self, hand_idx):
-        key = self.hovered.get(hand_idx)
+    def try_press(self):
+        key = self.hovered
         if not key:
             return
 
@@ -245,14 +224,6 @@ class VirtualKeyboard:
         pyautogui.press(press_key)
         print(f"[KB] Pressed: {key}")
 
-        self.flash_pending[key] = True
-        self._refresh_key(key)
-
-        def clear_flash(k=key):
-            self.flash_pending.pop(k, None)
-            self._refresh_key(k)
-
-        self.win.after(200, clear_flash)
 
     def destroy(self):
         self.finger_overlay.destroy()
