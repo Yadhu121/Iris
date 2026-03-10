@@ -10,6 +10,18 @@ from faster_whisper import WhisperModel
 import tkinter as tk
 from keyboard import VirtualKeyboard
 from enum import Enum
+from deep_translator import GoogleTranslator
+
+class TranslateEngine:
+    def translate(self, text, mode):
+        try:
+            if mode == "ml-en":
+                return GoogleTranslator(source='ml', target='en').translate(text)
+            else:
+                return GoogleTranslator(source='en', target='ml').translate(text)
+        except Exception as e:
+            print(f"TRANSLATION ERROR: {e}")
+            return text
 
 pyautogui.FAILSAFE = False
 pyautogui.PAUSE = 0
@@ -35,6 +47,8 @@ current_mode = Mode.MOUSE
 pending_mode = None
 mode_hold_start = None
 MODE_HOLD_SECONDS = 1.0
+
+translate_mode = None
 
 gesture_active = False
 is_Fist = False
@@ -209,13 +223,13 @@ class VoiceRecorder:
             return True
         return False
 
-    def stop_recording(self):
+    def stop_recording(self, mode=None):
         if self.is_recording:
             self.is_recording = False
             while not self.audio_queue.empty():
                 self.audio_buffer.append(self.audio_queue.get())
             buffer_copy = self.audio_buffer.copy()
-            threading.Thread(target=self._transcribe, args=(buffer_copy,), daemon=True).start()
+            threading.Thread(target=self._transcribe, args=(buffer_copy, mode), daemon=True).start()
             return True
         return False
 
@@ -227,17 +241,20 @@ class VoiceRecorder:
             while not self.audio_queue.empty():
                 self.audio_queue.get()
 
-    def _transcribe(self, buffer):
+    def _transcribe(self, buffer, mode=None):
         if len(buffer) == 0:
             return
         try:
             audio_np = np.concatenate(buffer).flatten()
             if len(audio_np) < 16000 * 0.3:
                 return
+            
+            lang = "ml" if mode == "ml-en" else "en"
+
             segments, info = self.model.transcribe(
                 audio_np,
                 beam_size=5,
-                language="en",
+                language=lang,
                 vad_filter=True,
                 vad_parameters={
                     "threshold": 0.5,
@@ -247,9 +264,16 @@ class VoiceRecorder:
                 condition_on_previous_text=False
             )
             transcription = " ".join(segment.text.strip() for segment in segments)
+            
             if transcription:
                 print(f"TRANSCRIBED: {transcription}")
-                pyautogui.write(transcription, interval=0.01)
+                if mode:
+                    translated = translator.translate(transcription, mode)
+                    print(f"TRANSLATED: {translated}")
+                    pyautogui.write(translated, interval=0.01)
+                else:
+                    pyautogui.write(transcription, interval=0.01)
+
         except Exception as e:
             print(f"ERROR: {e}")
 
@@ -260,6 +284,7 @@ class VoiceRecorder:
 
 voice = VoiceRecorder(model_size="small")
 vkb = VirtualKeyboard(screen_width, screen_height)
+translator = TranslateEngine()
 
 
 cap = cv2.VideoCapture(0)
@@ -466,15 +491,20 @@ while cap.isOpened():
                     #     is_Enter_Click = False
 
                 elif fingers == [0, 1, 0, 0, 0]:
-                    vkb.update_hover(i, tip_screen_x, tip_screen_y)
+                    if hand_label == "Right":
+                        vkb.update_hover(i, tip_screen_x, tip_screen_y)
 
                 elif fingers == [0, 1, 1, 0, 0]:
-                    vkb.update_hover(i, tip_screen_x, tip_screen_y)
-                    if not was_peace[i]:
-                        vkb.try_press(i)
-                    was_peace[i] = True
+                    if hand_label == "Left":
+                        right_idx = next((j for j in range(num_hands) 
+                                        if get_hand_label(j, results) == "Right"), None)
+                        if right_idx is not None:
+                            if not was_peace[i]:
+                                vkb.try_press(right_idx)
+                            was_peace[i] = True
                 else:
-                    was_peace[i] = False
+                    if hand_label == "Left":
+                        was_peace[i] = False
 
             elif current_mode == Mode.VOICE and gesture_active:
 
@@ -489,6 +519,28 @@ while cap.isOpened():
                         voice.stop_recording()
                         is_Recording = False
                         gesture_label.config(text="[Voice] Transcribing...")
+                        overlay.update()
+
+                elif hand_label == "Left":
+                    if fingers == [0, 1, 1, 0, 0] and not is_Recording:
+                        is_Recording = True
+                        translate_mode = "ml-en"
+                        voice.start_recording()
+                        gesture_label.config(text="[Voice] ML→EN Recording...")
+                        overlay.update()
+
+                    elif fingers == [0, 0, 1, 1, 1] and not is_Recording:
+                        is_Recording = True
+                        translate_mode = "en-ml"
+                        voice.start_recording()
+                        gesture_label.config(text="[Voice] EN→ML Recording...")
+                        overlay.update()
+
+                    if fingers not in [[0, 1, 1, 0, 0], [0, 0, 1, 1, 1]] and is_Recording:
+                        voice.stop_recording(mode=translate_mode)
+                        is_Recording = False
+                        translate_mode = None
+                        gesture_label.config(text="[Voice] Translating...")
                         overlay.update()
 
     cv2.imshow('Gesture Control', frame)
