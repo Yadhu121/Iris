@@ -1,64 +1,51 @@
 ﻿# IRIS
  
-### Toggle Gestures
-Right Hand Fist
+## Toggle gesture on/off
+### Right hand fist
 
-## Controls (Right Hand)
+## Modes
+### Mouse
+#### Pinky + Ring + Middle in both hands
 
-### Left Click
-Thumb touching Index finger
+### Keyboard
+#### Middle + Index in both hands
 
-### Right Click
-Thumb touching Middle finger
+### Voice
+#### Ring + Middle + Index in both hands
 
-### Enter Key
-Thumb touching Ring finger
+## Left click
+### Right hand Thumb + Index
 
-### Voice Recording
-Index + Middle + Ring fingers up
+## Right click
+### Right hand Thumb + Middle finger
 
-### Arrow Keys
+## Enter
+### Right hand Thumb + Ring finger
 
-## Left Arrow
-Thumb pointing left (all other fingers down)
+## Left arrow
+### Right hand Thumb
 
-## Left Hand Gestures
+## Scroll
+### Left hand Index
+### Left hand Index + Middle
 
-### Scroll Up
-Index + Middle fingers
+## Drag
+### Left hand Index + Thumb
 
-### Scroll Down
-Only Index finger
+## Alt Tab
+### Left hand Fist
 
-### Drag
-Thumb touching Index
+## Backspace
+### Left hand Pinky + Thumb
 
-### Alt-Tab Window Switcher
-Left hand fist
+## Right arrow
+### Left hand Thumb
 
- Action:
- Opens - Alt-Tab
- Hold - cycles through windows
- Release - selects window
+## Transcribe
+### Right hand Ring + Middle + Index
 
-### Backspace
-Thumb touching Pinky\*\*
+## Translate Malayalam to English
+### Left hand Index + Middle
 
-## Virtual Keyboard
-
-### Toggle Virtual Keyboard
-Peace sign on BOTH hands
-Hold for 0.5 seconds
-
-## Virtual Keyboard Controls
-
-### Hover
-Index finger
-
-### Key Press
-
-Index + Thumb up
-
-
-
-
+## Translate English to Malayalam
+### Left hand Pinky + Ring + Middle
