@@ -1,0 +1,234 @@
+<Window x:Class="GestureControlApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Iris"
+        Width="780" Height="620"
+        MinWidth="780" MinHeight="620"
+        WindowStartupLocation="CenterScreen"
+        Background="#F8F9FA"
+        FontFamily="Segoe UI">
+
+    <Window.Resources>
+
+        <Style x:Key="ModeHeader" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+
+        <Style x:Key="Card" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="16,14"/>
+            <Setter Property="Margin" Value="6"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="12" ShadowDepth="1" Opacity="0.08" Color="#000000"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="GestureName" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Foreground" Value="#1A1A2E"/>
+        </Style>
+
+        <Style x:Key="GestureDesc" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Foreground" Value="#6B7280"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+
+        <Style x:Key="HandBadge" TargetType="Border">
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Padding" Value="6,3"/>
+            <Setter Property="Margin" Value="0,4,0,8"/>
+        </Style>
+
+        <Style x:Key="StartBtn" TargetType="Button">
+            <Setter Property="Background" Value="#1A1A2E"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="Width" Value="130"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="7">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#2D2D4E"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Background" Value="#9CA3AF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="StopBtn" TargetType="Button">
+            <Setter Property="Background" Value="#DC2626"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="Width" Value="130"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="7">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#B91C1C"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Background" Value="#9CA3AF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="White" Padding="24,16,24,14">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.06" Color="#000"/>
+            </Border.Effect>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Iris" FontSize="22" FontWeight="Bold" Foreground="#1A1A2E"/>
+                    <TextBlock Text="Review gestures below, then press Start." FontSize="11" Foreground="#9CA3AF" Margin="0,3,0,0"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                    <TextBlock Text="Stop anytime:" FontSize="10" Foreground="#9CA3AF" HorizontalAlignment="Center"/>
+                    <Border Background="#F3F4F6" CornerRadius="5" Padding="8,4" Margin="0,3,0,0">
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="10,8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="Mouse Mode" Style="{StaticResource ModeHeader}" Foreground="#2563EB"/>
+                        <Separator Margin="0,0,0,8" Background="#EFF6FF"/>
+
+                        <Border Style="{StaticResource HandBadge}" Background="#EFF6FF">
+                            <TextBlock Text="Right Hand — Cursor" FontSize="10" FontWeight="SemiBold" Foreground="#2563EB" HorizontalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="Thumb + Index touch" Style="{StaticResource GestureName}"/>
+                        <TextBlock Text="Left click" Style="{StaticResource GestureDesc}" Margin="0,0,0,6"/>
+                        <TextBlock Text="Thumb + Middle touch" Style="{StaticResource GestureName}"/>
+                        <TextBlock Text="Right click" Style="{StaticResource GestureDesc}" Margin="0,0,0,6"/>
+                        <TextBlock Text="Thumb + Ring touch" Style="{StaticResource GestureName}"/>
+                        <TextBlock Text="Enter key" Style="{StaticResource GestureDesc}" Margin="0,0,0,6"/>
+                        <TextBlock Text="Thumb pointing left" Style="{StaticResource GestureName}"/>
+                        <TextBlock Text="Left arrow key" Style="{StaticResource GestureDesc}" Margin="0,0,0,8"/>
+
+                        <Separator Margin="0,0,0,8" Background="#DBEAFE"/>
+                        <Border Style="{StaticResource HandBadge}" Background="#F0FDF4">
+                            <TextBlock Text="Left Hand — Actions" FontSize="10" FontWeight="SemiBold" Foreground="#16A34A" HorizontalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="Index + Middle up" Style="{StaticResource GestureName}"/>
+                        <TextBlock Text="Scroll up" Style="{StaticResource GestureDesc}" Margin="0,0,0,6"/>
+                        <TextBlock Text="Index up only" Style="{StaticResource GestureName}"/>
+                        <TextBlock Text="Scroll down" Style="{StaticResource GestureDesc}" Margin="0,0,0,6"/>
+                        <TextBlock Text="Thumb + Index touch" Style="{StaticResource GestureName}"/>
+                        <TextBlock Text="Click &amp; drag" Style="{StaticResource GestureDesc}" Margin="0,0,0,6"/>
+                        <TextBlock Text="Fist" Style="{StaticResource GestureName}"/>
+                        <TextBlock Text="Alt + Tab (hold to cycle)" Style="{StaticResource GestureDesc}" Margin="0,0,0,6"/>
+                        <TextBlock Text="Thumb + Pinky touch" Style="{StaticResource GestureName}"/>
+                        <TextBlock Text="Backspace" Style="{StaticResource GestureDesc}" Margin="0,0,0,6"/>
+                        <TextBlock Text="Thumb pointing right" Style="{StaticResource GestureName}"/>
+                        <TextBlock Text="Right arrow key" Style="{StaticResource GestureDesc}"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="1" Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="Voice Mode" Style="{StaticResource ModeHeader}" Foreground="#EA580C"/>
+                        <Separator Margin="0,0,0,8" Background="#FFF7ED"/>
+
+                        <Border Style="{StaticResource HandBadge}" Background="#FFF7ED">
+                            <TextBlock Text="Right Hand — Transcribe" FontSize="10" FontWeight="SemiBold" Foreground="#EA580C" HorizontalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="Index + Middle + Ring up" Style="{StaticResource GestureName}"/>
+                        <TextBlock Text="Hold to record → release to transcribe (English)" Style="{StaticResource GestureDesc}" Margin="0,0,0,10"/>
+
+                        <Separator Margin="0,0,0,8" Background="#FED7AA"/>
+                        <Border Style="{StaticResource HandBadge}" Background="#F0FDF4">
+                            <TextBlock Text="Left Hand — Translate" FontSize="10" FontWeight="SemiBold" Foreground="#16A34A" HorizontalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="Index + Middle up" Style="{StaticResource GestureName}"/>
+                        <TextBlock Text="Hold - Malayalam to English" Style="{StaticResource GestureDesc}" Margin="0,0,0,6"/>
+                        <TextBlock Text="Middle + Ring + Pinky up" Style="{StaticResource GestureName}"/>
+                        <TextBlock Text="Hold - English to Malayalam" Style="{StaticResource GestureDesc}" Margin="0,0,0,10"/>
+
+                        <Separator Margin="0,0,0,8" Background="#FED7AA"/>
+                    </StackPanel>
+                </Border>
+
+            </Grid>
+        </ScrollViewer>
+
+        <Border Grid.Row="2" Background="White" Padding="24,12">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="10" ShadowDepth="-1" Opacity="0.06" Color="#000"/>
+            </Border.Effect>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" x:Name="StatusText"
+                           Text="Ready — press Start to begin"
+                           FontSize="11" Foreground="#9CA3AF"
+                           VerticalAlignment="Center"/>
+                <Button Grid.Column="1" x:Name="StartButton"
+                        Content="▶   Start"
+                        Style="{StaticResource StartBtn}"
+                        Click="StartButton_Click"/>
+                <Button Grid.Column="3" x:Name="StopButton"
+                        Content="■   Stop"
+                        Style="{StaticResource StopBtn}"
+                        IsEnabled="False"
+                        Click="StopButton_Click"/>
+            </Grid>
+        </Border>
+
+    </Grid>
+</Window>
