@@ -38,12 +38,11 @@ screen_width, screen_height = pyautogui.size()
 cam_width, cam_height = 640, 480
 frame_reduction = 100
 
-class Mode(Enum):
-    MOUSE = "Mouse"
-    KEYBOARD = "Keyboard"
-    VOICE = "Voice"
 
-current_mode = Mode.MOUSE
+MOUSE = "Mouse"
+VOICE = "Voice"
+
+current_mode = MOUSE
 pending_mode = None
 mode_hold_start = None
 MODE_HOLD_SECONDS = 1.0
@@ -162,11 +161,9 @@ def is_thumb_pointing_right(landmarks):
 
 def detect_mode_gesture(fingers):
     if fingers[1:] == [0, 1, 1, 1]:
-        return Mode.MOUSE
-    elif fingers[1:] == [1, 1, 0, 0]:
-        return Mode.KEYBOARD
+        return MOUSE
     elif fingers[1:] == [1, 1, 1, 0]:
-        return Mode.VOICE
+        return VOICE
     return None
 
 
@@ -317,13 +314,13 @@ while cap.isOpened():
                 elif time.time() - mode_hold_start >= MODE_HOLD_SECONDS:
                     if current_mode != pending_mode:
                         current_mode = pending_mode
-                        print(f"Mode switched to: {current_mode.value}")
-                        if current_mode == Mode.KEYBOARD:
-                            osk = subprocess.Popen("osk.exe", shell=True)
-                        else:
-                            osk.terminate()
+                        print(f"Mode switched to: {current_mode}")
+                        # if current_mode == KEYBOARD:
+                        #     osk = subprocess.Popen("osk.exe", shell=True)
+                        # else:
+                        #     subprocess.run("taskkill /f /im osk.exe", shell=True)
                             
-                        gesture_label.config(text=f"[{current_mode.value}] Mode Active")
+                        gesture_label.config(text=f"[{current_mode}] Mode Active")
                         overlay.update()
                     pending_mode = None
                     mode_hold_start = None
@@ -344,12 +341,12 @@ while cap.isOpened():
                         is_Fist = True
                         gesture_active = not gesture_active
                         print(f"Gestures {'ACTIVATED' if gesture_active else 'DEACTIVATED'}")
-                        gesture_label.config(text=f"[{current_mode.value}] {'ON' if gesture_active else 'OFF'}")
+                        gesture_label.config(text=f"[{current_mode}] {'ON' if gesture_active else 'OFF'}")
                         overlay.update()
                 else:
                     is_Fist = False
 
-            if current_mode == Mode.MOUSE and gesture_active:
+            if current_mode == MOUSE and gesture_active:
 
                 if hand_label == "Right":
                     move_cursor(hand_landmarks, frame_width, frame_height)
@@ -450,30 +447,30 @@ while cap.isOpened():
                     elif not is_thumb_pointing_right(lm):
                         is_arrow_right = False
 
-            elif current_mode == Mode.KEYBOARD and gesture_active:
+            # elif current_mode == KEYBOARD and gesture_active:
 
-                index_tip = lm[8]
-                tip_screen_x = int(np.interp(index_tip.x * frame_width,
-                    [frame_reduction, frame_width - frame_reduction], [0, screen_width]))
-                tip_screen_y = int(np.interp(index_tip.y * frame_height,
-                    [frame_reduction, frame_height - frame_reduction], [0, screen_height]))
+            #     index_tip = lm[8]
+            #     tip_screen_x = int(np.interp(index_tip.x * frame_width,
+            #         [frame_reduction, frame_width - frame_reduction], [0, screen_width]))
+            #     tip_screen_y = int(np.interp(index_tip.y * frame_height,
+            #         [frame_reduction, frame_height - frame_reduction], [0, screen_height]))
 
-                if fingers == [1, 1, 1, 1, 1]:
-                    if hand_label == "Right":
-                        move_cursor(hand_landmarks, frame_width, frame_height)
+            #     if fingers == [1, 1, 1, 1, 1]:
+            #         if hand_label == "Right":
+            #             move_cursor(hand_landmarks, frame_width, frame_height)
 
-                    is_leftClick = isLeftTouching(hand_landmarks)
-                    # is_rightClick = isRightTouching(hand_landmarks)
-                    # is_EnterClick = isEnterTouching(hand_landmarks)
+            #         is_leftClick = isLeftTouching(hand_landmarks)
+            #         # is_rightClick = isRightTouching(hand_landmarks)
+            #         # is_EnterClick = isEnterTouching(hand_landmarks)
 
-                    if is_leftClick and not is_Left_Click:
-                        is_Left_Click = True
-                        pyautogui.click()
-                        print("Left click")
-                    if not is_leftClick:
-                        is_Left_Click = False
+            #         if is_leftClick and not is_Left_Click:
+            #             is_Left_Click = True
+            #             pyautogui.click()
+            #             print("Left click")
+            #         if not is_leftClick:
+            #             is_Left_Click = False
 
-            elif current_mode == Mode.VOICE and gesture_active:
+            elif current_mode == VOICE and gesture_active:
 
                 if hand_label == "Right":
                     if fingers == [0, 1, 1, 1, 0] and not is_Recording:
