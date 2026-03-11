@@ -1,0 +1,206 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --ink: #0d0d0d;
+  --paper: #f5f0e8;
+  --accent: #c84b2f;
+  --muted: #7a7060;
+  --serif: 'Playfair Display', Georgia, serif;
+  --mono: 'DM Mono', monospace;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--serif);
+  overflow-x: hidden;
+}
+
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  padding: 1.6rem 3rem;
+}
+.nav-logo {
+  font-family: var(--serif);
+  font-weight: 900;
+  font-size: 1.1rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+#hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.hero-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10rem 4rem 6rem;
+}
+.hero-label {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 1.8rem;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.2s forwards;
+}
+.hero-title {
+  font-family: var(--serif);
+  font-size: clamp(4.5rem, 7vw, 7.5rem);
+  font-weight: 900;
+  line-height: 0.92;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin-bottom: 2.5rem;
+  opacity: 0;
+  animation: fadeUp 0.9s 0.4s forwards;
+}
+.hero-title em {
+  font-style: italic;
+  color: var(--accent);
+}
+.hero-desc {
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  line-height: 1.9;
+  color: var(--muted);
+  max-width: 340px;
+  margin-bottom: 3rem;
+  opacity: 0;
+  animation: fadeUp 0.9s 0.6s forwards;
+}
+.hero-cta {
+  opacity: 0;
+  animation: fadeUp 0.9s 0.8s forwards;
+}
+
+.btn-primary {
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 1rem 2.2rem;
+  text-decoration: none;
+  border: 2px solid var(--ink);
+  display: inline-block;
+  transition: background 0.25s, color 0.25s, transform 0.2s;
+}
+.btn-primary:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+.btn-light {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 1rem 2.5rem;
+  text-decoration: none;
+  border: 2px solid var(--paper);
+  transition: background 0.25s, color 0.25s, transform 0.2s;
+}
+.btn-light:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--paper);
+  transform: translateY(-2px);
+}
+
+#cta {
+  background: var(--ink);
+  padding: 10rem 5rem;
+  text-align: center;
+}
+.section-label {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 2rem;
+}
+#cta h2 {
+  font-family: var(--serif);
+  font-size: clamp(3rem, 6vw, 7rem);
+  font-weight: 900;
+  line-height: 1;
+  color: var(--paper);
+  margin-bottom: 1.5rem;
+}
+#cta h2 em { font-style: italic; color: var(--accent); }
+#cta p {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: rgba(245,240,232,0.5);
+  margin-bottom: 3.5rem;
+}
+.cta-btns {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+}
+
+footer {
+  padding: 3rem 5rem;
+  border-top: 1px solid rgba(13,13,13,0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.footer-logo {
+  font-family: var(--serif);
+  font-weight: 900;
+  font-size: 0.9rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+.footer-copy {
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+.footer-links {
+  display: flex;
+  gap: 2rem;
+  list-style: none;
+}
+.footer-links a {
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.footer-links a:hover { color: var(--accent); }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 900px) {
+  nav { padding: 1.2rem 2rem; }
+  .hero-left { padding: 8rem 2rem 4rem; }
+  #cta, footer { padding-left: 2rem; padding-right: 2rem; }
+}
