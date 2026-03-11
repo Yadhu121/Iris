@@ -1,9 +1,7 @@
 @echo off
 title Gesture Control — First Time Setup
 echo.
-echo  =========================================
 echo   Gesture Control — First Time Setup
-echo  =========================================
 echo.
 
 python --version >nul 2>&1
@@ -43,9 +41,7 @@ if %errorlevel% neq 0 (
 )
 
 echo.
-echo  =========================================
 echo   Setup complete!
 echo   You can now launch GestureControl.exe
-echo  =========================================
 echo.
 pause
