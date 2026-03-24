@@ -30,7 +30,7 @@ echo        mediapipe, opencv, faster-whisper, pyautogui, sounddevice,
 echo        deep-translator, keyboard — please wait...
 echo.
 
-venv\Scripts\python.exe -m pip install opencv-python mediapipe==0.10.9 pyautogui numpy sounddevice faster-whisper deep-translator keyboard
+venv\Scripts\python.exe -m pip install opencv-python mediapipe==0.10.9 pyautogui numpy sounddevice faster-whisper deep-translator keyboard scikit-learn scikit-image
 
 if %errorlevel% neq 0 (
     echo.
