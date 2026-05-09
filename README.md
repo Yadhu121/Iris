@@ -1,51 +1,82 @@
 ﻿# IRIS
- 
-## Toggle gesture on/off
+
+## Toggle Gestures On/Off
 ### Right hand fist
 
-## Modes
-### Mouse
-#### Pinky + Ring + Middle in both hands
+---
 
-### Keyboard
-#### Middle + Index in both hands
+## Switch Modes
+> Hold the same gesture with **both hands** for 1 second to switch modes.
 
-### Voice
-#### Ring + Middle + Index in both hands
+### Mouse Mode
+#### Both hands: Middle + Ring + Pinky
 
-## Left click
-### Right hand Thumb + Index
+### Voice Mode
+#### Both hands: Index + Middle + Ring
 
-## Right click
-### Right hand Thumb + Middle finger
+### Writing Mode
+#### Both hands: Ring + Pinky
 
-## Enter
-### Right hand Thumb + Ring finger
+---
 
-## Left arrow
-### Right hand Thumb
+## Mouse Mode
 
-## Scroll
-### Left hand Index
-### Left hand Index + Middle
+### Move Cursor
+#### Right hand open (gesture active)
 
-## Drag
-### Left hand Index + Thumb
+### Left Click
+#### Right hand: Thumb + Index
 
-## Alt Tab
-### Left hand Fist
+### Right Click
+#### Right hand: Thumb + Middle
 
-## Backspace
-### Left hand Pinky + Thumb
+### Enter
+#### Right hand: Thumb + Ring
 
-## Right arrow
-### Left hand Thumb
+### Left Arrow
+#### Right hand: Thumb pointing left
 
-## Transcribe
-### Right hand Ring + Middle + Index
+### Scroll Up
+#### Left hand: Index + Middle
 
-## Translate Malayalam to English
-### Left hand Index + Middle
+### Scroll Down
+#### Left hand: Index
 
-## Translate English to Malayalam
-### Left hand Pinky + Ring + Middle
+### Drag
+#### Left hand: Thumb + Index
+
+### Alt + Tab
+#### Left hand: Fist
+
+### Backspace
+#### Left hand: Thumb + Pinky
+
+### Right Arrow
+#### Left hand: Thumb pointing right
+
+---
+
+## Voice Mode
+
+### Transcribe (English)
+#### Right hand: Index + Middle + Ring
+
+### Translate Malayalam → English
+#### Left hand: Index + Middle
+
+### Translate English → Malayalam
+#### Left hand: Middle + Ring + Pinky
+
+---
+
+## Writing Mode
+> Draw a letter in the air to launch its mapped app.
+
+### Start Drawing
+#### Left hand: Fist (hold briefly)
+
+### Draw Letter
+#### Right hand: Move Index finger to draw
+
+### Confirm & Launch App
+#### Left hand: Fist again (hold briefly)
