@@ -98,6 +98,7 @@ nav {
   text-decoration: none;
   border: 2px solid var(--ink);
   display: inline-block;
+  cursor: pointer;
   transition: background 0.25s, color 0.25s, transform 0.2s;
 }
 .btn-primary:hover {
@@ -120,6 +121,23 @@ nav {
 .btn-light:hover {
   background: var(--accent);
   border-color: var(--accent);
+  color: var(--paper);
+  transform: translateY(-2px);
+}
+.btn-outline {
+  background: transparent;
+  color: var(--paper);
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 1rem 2.5rem;
+  border: 2px solid rgba(245,240,232,0.4);
+  cursor: pointer;
+  transition: border-color 0.25s, color 0.25s, transform 0.2s;
+}
+.btn-outline:hover {
+  border-color: var(--paper);
   color: var(--paper);
   transform: translateY(-2px);
 }
@@ -156,6 +174,7 @@ nav {
   display: flex;
   gap: 1.5rem;
   justify-content: center;
+  flex-wrap: wrap;
 }
 
 footer {
@@ -194,6 +213,106 @@ footer {
 }
 .footer-links a:hover { color: var(--accent); }
 
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(13,13,13,0.7);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+.modal-overlay.active {
+  opacity: 1;
+  pointer-events: all;
+}
+.modal {
+  background: var(--paper);
+  max-width: 480px;
+  width: 100%;
+  padding: 3rem;
+  position: relative;
+  transform: translateY(20px);
+  transition: transform 0.3s;
+}
+.modal-overlay.active .modal {
+  transform: translateY(0);
+}
+.modal-close {
+  position: absolute;
+  top: 1.2rem;
+  right: 1.4rem;
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  color: var(--muted);
+  cursor: pointer;
+  line-height: 1;
+  transition: color 0.2s;
+}
+.modal-close:hover { color: var(--accent); }
+.modal-label {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 1rem;
+}
+.modal-title {
+  font-family: var(--serif);
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 900;
+  line-height: 1.05;
+  color: var(--ink);
+  margin-bottom: 2rem;
+}
+.modal-title em {
+  font-style: italic;
+  color: var(--accent);
+}
+.feedback-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.feedback-form input,
+.feedback-form textarea {
+  background: transparent;
+  border: 1.5px solid rgba(13,13,13,0.2);
+  padding: 0.9rem 1.2rem;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: var(--ink);
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+}
+.feedback-form input:focus,
+.feedback-form textarea:focus {
+  border-color: var(--accent);
+}
+.feedback-form input::placeholder,
+.feedback-form textarea::placeholder {
+  color: var(--muted);
+}
+.feedback-form .btn-primary {
+  align-self: flex-start;
+}
+.feedback-success {
+  display: none;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: var(--accent);
+  letter-spacing: 0.1em;
+  margin-top: 1rem;
+}
+
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(24px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -202,5 +321,12 @@ footer {
 @media (max-width: 900px) {
   nav { padding: 1.2rem 2rem; }
   .hero-left { padding: 8rem 2rem 4rem; }
-  #cta, footer { padding-left: 2rem; padding-right: 2rem; }
+  #cta { padding: 6rem 2rem; }
+  footer {
+    padding: 2rem;
+    flex-direction: column;
+    gap: 1.5rem;
+    text-align: center;
+  }
+  .modal { padding: 2rem; }
 }
