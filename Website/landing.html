@@ -1,9 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Iris — Control with Grace</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
+
   <nav>
     <div class="nav-logo">Iris</div>
   </nav>
@@ -29,6 +34,7 @@
     <p>Free · No account · No credit card · Just download and go</p>
     <div class="cta-btns">
       <a href="https://drive.google.com/uc?export=download&id=1ded5V67HB3bUJwNYY1cfGn1OjuIMj6rK" class="btn-light">Download for Free</a>
+      <button class="btn-outline" id="open-feedback">Feedback</button>
     </div>
   </section>
 
@@ -41,3 +47,36 @@
       <li><a href="#">Contact</a></li>
     </ul>
   </footer>
+
+  <div id="modal-overlay" class="modal-overlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <button class="modal-close" id="close-modal" aria-label="Close">&times;</button>
+      <div class="modal-label">Feedback</div>
+      <h2 class="modal-title" id="modal-title">Tell us what<br/>you <em>think.</em></h2>
+      <form
+        class="feedback-form"
+        action="https://formspree.io/f/xzdokklw"
+        method="POST"
+      >
+        <input
+          type="email"
+          name="email"
+          placeholder="your@email.com"
+          required
+        />
+        <textarea
+          name="message"
+          placeholder="What's on your mind?"
+          rows="5"
+          required
+        ></textarea>
+        <button type="submit" class="btn-primary">Send Feedback</button>
+      </form>
+      <p class="feedback-success" id="feedback-success">Thank you — we got it.</p>
+    </div>
+  </div>
+
+  <script src="main.js"></script>
+
+</body>
+</html>
